@@ -7,7 +7,11 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #fdfdfd; }
     h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    .tabs { text-align: center; margin-bottom: 20px; }
+    .tabs button { margin: 5px; padding: 10px 20px; cursor: pointer; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background: #eee; }
     .card { 
@@ -16,64 +20,80 @@
       border: 1px solid #ccc; 
       border-radius: 8px; 
       text-align: center; 
-      margin: 0 auto; 
+      margin: 20px auto; 
       width: 80%; 
       background: #fff;
       box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
     }
     .card.active { display: block; }
     .buttons { margin-top: 20px; text-align: center; }
-    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .mode-select { text-align: center; margin: 10px; }
   </style>
 </head>
 <body>
   <h1>タイ語-日本語 単語帳</h1>
 
-  <h2>📋 一覧表</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>タイ語</th>
-        <th>ローマ字</th>
-        <th>カタカナ</th>
-        <th>日本語</th>
-      </tr>
-    </thead>
-    <tbody id="wordTable"></tbody>
-  </table>
+  <!-- タブメニュー -->
+  <div class="tabs">
+    <button onclick="showTab('list')">📋 一覧表</button>
+    <button onclick="showTab('flash')">🃏 単語暗記モード</button>
+  </div>
 
-  <h2>🃏 単語カード</h2>
-  <div id="flashcard" class="card"></div>
-  <div class="buttons">
-    <button onclick="prevCard()">◀ 前へ</button>
-    <button onclick="nextCard()">次へ ▶</button>
+  <!-- 一覧表タブ -->
+  <div id="list" class="tab-content active">
+    <h2>📋 一覧表</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>タイ語</th>
+          <th>ローマ字</th>
+          <th>カタカナ</th>
+          <th>日本語</th>
+        </tr>
+      </thead>
+      <tbody id="wordTable"></tbody>
+    </table>
+  </div>
+
+  <!-- 単語暗記タブ -->
+  <div id="flash" class="tab-content">
+    <div class="mode-select">
+      <button onclick="setMode('business')">業務連絡</button>
+      <button onclick="setMode('technical')">専門用語</button>
+    </div>
+    <div id="flashcard" class="card"></div>
+    <div class="buttons">
+      <button onclick="prevCard()">◀ 前へ</button>
+      <button onclick="nextCard()">次へ ▶</button>
+    </div>
   </div>
 
   <script>
-    const words = [
+    // ✅ 専門用語
+    const technicalWords = [
       { thai: "การผลิต", romaji: "kan phalit", katakana: "カーン パリット", japanese: "生産" },
-      { thai: "การจัดการ", romaji: "kan chatkan", katakana: "カーン チャッカーン", japanese: "管理" },
-      { thai: "เครื่องจักร", romaji: "khrueang chak", katakana: "クルアン チャック", japanese: "機械" },
       { thai: "คุณภาพ", romaji: "khunnaphap", katakana: "クンナパープ", japanese: "品質" },
-      { thai: "วัสดุ", romaji: "watsadu", katakana: "ワッサドゥ", japanese: "原材料" },
-      { thai: "กำหนดการ", romaji: "kamnotkan", katakana: "カムノットガーン", japanese: "スケジュール" },
-      { thai: "หัวหน้า", romaji: "hua na", katakana: "フアナー", japanese: "上司／責任者" },
-      { thai: "ลูกน้อง", romaji: "luk nong", katakana: "ルーク ノーン", japanese: "部下" },
-      { thai: "ตรวจสอบ", romaji: "truat sop", katakana: "トゥルアット ソープ", japanese: "検査する" },
-      { thai: "ประชุม", romaji: "prachum", katakana: "プラチューム", japanese: "会議" },
-      { thai: "สรุป", romaji: "sarup", katakana: "サルップ", japanese: "まとめる" },
-      { thai: "กำไร", romaji: "kamrai", katakana: "カムライ", japanese: "利益" },
-      { thai: "ขาดทุน", romaji: "khat thun", katakana: "カートゥン", japanese: "損失" },
+      { thai: "เครื่องจักร", romaji: "khrueang chak", katakana: "クルアン チャック", japanese: "機械" },
       { thai: "มาตรฐาน", romaji: "matrathan", katakana: "マートラターン", japanese: "基準／標準" },
       { thai: "ความปลอดภัย", romaji: "khwam plotphai", katakana: "クワーム プロットパイ", japanese: "安全" },
     ];
 
+    // ✅ 実践的な業務連絡フレーズ
+    const businessPhrases = [
+      { thai: "กรุณาส่งรายงานภายในวันนี้", romaji: "karuna song raingan phainai wan ni", katakana: "カルナー ソン ラーイガーン パイナイ ワンニー", japanese: "本日中に報告書を提出してください" },
+      { thai: "เรามีการประชุมตอนบ่ายสองโมง", romaji: "rao mi kan prachum ton bai song mong", katakana: "ラオ ミー ガーン プラチューム トン バーイ ソーン モーン", japanese: "午後2時に会議があります" },
+      { thai: "ตรวจสอบคุณภาพก่อนส่งมอบ", romaji: "truat sop khunnaphap kon song mop", katakana: "トゥルアット ソープ クンナパープ ゴーン ソンモープ", japanese: "納品前に品質を確認してください" },
+      { thai: "งานนี้ต้องเสร็จภายในพรุ่งนี้", romaji: "ngan ni tong set phainai phrung ni", katakana: "ガーン ニー トン セット パイナイ プルンニー", japanese: "この仕事は明日までに完了させてください" },
+      { thai: "ขอรายงานยอดการผลิตประจำวัน", romaji: "kho raingan yot kan phalit pracham wan", katakana: "コー ラーイガーン ヨート ガーン パリット プラチャム ワン", japanese: "日次生産レポートをください" },
+    ];
+
     let current = 0;
+    let mode = "technical"; // デフォルトは専門用語
 
     function renderTable() {
       const table = document.getElementById("wordTable");
       table.innerHTML = "";
-      words.forEach(w => {
+      [...technicalWords, ...businessPhrases].forEach(w => {
         const row = `<tr>
           <td>${w.thai}</td>
           <td>${w.romaji}</td>
@@ -86,19 +106,33 @@
 
     function renderCard() {
       const card = document.getElementById("flashcard");
-      const w = words[current];
+      const data = (mode === "technical") ? technicalWords : businessPhrases;
+      const w = data[current];
       card.innerHTML = `<h3>${w.thai}</h3><p>${w.romaji}</p><p>${w.katakana}</p><p>${w.japanese}</p>`;
       card.classList.add("active");
     }
 
     function nextCard() {
-      current = (current + 1) % words.length;
+      const data = (mode === "technical") ? technicalWords : businessPhrases;
+      current = (current + 1) % data.length;
       renderCard();
     }
 
     function prevCard() {
-      current = (current - 1 + words.length) % words.length;
+      const data = (mode === "technical") ? technicalWords : businessPhrases;
+      current = (current - 1 + data.length) % data.length;
       renderCard();
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      current = 0;
+      renderCard();
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.getElementById(tab).classList.add("active");
     }
 
     // 初期描画
