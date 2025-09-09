@@ -1,157 +1,109 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>タイ語フラッシュカード & 一覧表示（音声付き）</title>
-<style>
-body { font-family: sans-serif; padding: 20px; background-color:#f5f5f5;}
-h1 { text-align: center; }
-input { width: 100%; padding: 8px; margin: 10px 0; font-size: 16px; }
-button { margin: 5px; padding: 5px 10px; }
-.card { border: 1px solid #ccc; border-radius: 8px; background:white; padding: 15px; margin: 10px 0; cursor: pointer; transition: 0.2s; }
-.card:hover { background:#f0f0f0; }
-.hidden { display: none; }
-.stats { margin-top: 10px; font-size: 14px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 5px; text-align: left; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タイ語-日本語 単語帳</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #fdfdfd; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    .card { 
+      display: none; 
+      padding: 20px; 
+      border: 1px solid #ccc; 
+      border-radius: 8px; 
+      text-align: center; 
+      margin: 0 auto; 
+      width: 80%; 
+      background: #fff;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    .card.active { display: block; }
+    .buttons { margin-top: 20px; text-align: center; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+  </style>
 </head>
 <body>
+  <h1>タイ語-日本語 単語帳</h1>
 
-<h1>タイ語フラッシュカード & 一覧表示（音声付き）</h1>
+  <h2>📋 一覧表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>タイ語</th>
+        <th>ローマ字</th>
+        <th>カタカナ</th>
+        <th>日本語</th>
+      </tr>
+    </thead>
+    <tbody id="wordTable"></tbody>
+  </table>
 
-<!-- モード切替ボタン -->
-<button id="modeFlash">フラッシュカード</button>
-<button id="modeList">一覧表示</button>
+  <h2>🃏 単語カード</h2>
+  <div id="flashcard" class="card"></div>
+  <div class="buttons">
+    <button onclick="prevCard()">◀ 前へ</button>
+    <button onclick="nextCard()">次へ ▶</button>
+  </div>
 
-<!-- 検索ボックス -->
-<input type="text" id="search" placeholder="日本語・タイ語・カテゴリで検索..." />
+  <script>
+    const words = [
+      { thai: "การผลิต", romaji: "kan phalit", katakana: "カーン パリット", japanese: "生産" },
+      { thai: "การจัดการ", romaji: "kan chatkan", katakana: "カーン チャッカーン", japanese: "管理" },
+      { thai: "เครื่องจักร", romaji: "khrueang chak", katakana: "クルアン チャック", japanese: "機械" },
+      { thai: "คุณภาพ", romaji: "khunnaphap", katakana: "クンナパープ", japanese: "品質" },
+      { thai: "วัสดุ", romaji: "watsadu", katakana: "ワッサドゥ", japanese: "原材料" },
+      { thai: "กำหนดการ", romaji: "kamnotkan", katakana: "カムノットガーン", japanese: "スケジュール" },
+      { thai: "หัวหน้า", romaji: "hua na", katakana: "フアナー", japanese: "上司／責任者" },
+      { thai: "ลูกน้อง", romaji: "luk nong", katakana: "ルーク ノーン", japanese: "部下" },
+      { thai: "ตรวจสอบ", romaji: "truat sop", katakana: "トゥルアット ソープ", japanese: "検査する" },
+      { thai: "ประชุม", romaji: "prachum", katakana: "プラチューム", japanese: "会議" },
+      { thai: "สรุป", romaji: "sarup", katakana: "サルップ", japanese: "まとめる" },
+      { thai: "กำไร", romaji: "kamrai", katakana: "カムライ", japanese: "利益" },
+      { thai: "ขาดทุน", romaji: "khat thun", katakana: "カートゥン", japanese: "損失" },
+      { thai: "มาตรฐาน", romaji: "matrathan", katakana: "マートラターン", japanese: "基準／標準" },
+      { thai: "ความปลอดภัย", romaji: "khwam plotphai", katakana: "クワーム プロットパイ", japanese: "安全" },
+    ];
 
-<!-- フラッシュカード表示 -->
-<div id="flashCards"></div>
+    let current = 0;
 
-<!-- 一覧表示 -->
-<div id="listView" style="display:none;"></div>
+    function renderTable() {
+      const table = document.getElementById("wordTable");
+      table.innerHTML = "";
+      words.forEach(w => {
+        const row = `<tr>
+          <td>${w.thai}</td>
+          <td>${w.romaji}</td>
+          <td>${w.katakana}</td>
+          <td>${w.japanese}</td>
+        </tr>`;
+        table.innerHTML += row;
+      });
+    }
 
-<!-- 統計表示 -->
-<div class="stats" id="stats"></div>
+    function renderCard() {
+      const card = document.getElementById("flashcard");
+      const w = words[current];
+      card.innerHTML = `<h3>${w.thai}</h3><p>${w.romaji}</p><p>${w.katakana}</p><p>${w.japanese}</p>`;
+      card.classList.add("active");
+    }
 
-<script>
-// サンプルデータ
-const words = [
-  {"thai":"ยางพารา","roman":"yaang phaa-raa","japanese":"天然ゴム","category":"専門用語","description":"ゴムの原料として使用される天然ラテックス。"},
-  {"thai":"ยางสังเคราะห์","roman":"yaang sang-khraaw","japanese":"合成ゴム","category":"専門用語","description":"人工的に化学合成されたゴム。"},
-  {"thai":"การผสม","roman":"kaan phasom","japanese":"混練","category":"専門用語","description":"ゴム原料と添加剤を均一に混ぜ合わせる工程。"},
-  {"thai":"ตรวจสอบคุณภาพแล้วหรือยัง","roman":"truad-sop khun-na-phap laew reuu yang","japanese":"品質チェックしましたか？","category":"業務連絡","description":""},
-  {"thai":"ส่งรายงานวันนี้","roman":"song raai-ngaan wan-nii","japanese":"今日の報告を送ってください","category":"業務連絡","description":""},
-  {"thai":"สวัสดีครับ","roman":"sa-wat-dee khrab","japanese":"こんにちは","category":"日常会話","description":""},
-  {"thai":"ขอบคุณมาก","roman":"khop-khun maak","japanese":"ありがとうございます","category":"日常会話","description":""},
-  {"thai":"สบายดีไหม","roman":"sa-baai dee mai","japanese":"元気ですか？","category":"日常会話","description":""}
-];
+    function nextCard() {
+      current = (current + 1) % words.length;
+      renderCard();
+    }
 
-// 正解/不正解ステータス
-words.forEach(w => w.status=null);
+    function prevCard() {
+      current = (current - 1 + words.length) % words.length;
+      renderCard();
+    }
 
-// DOM要素
-const cardsDiv = document.getElementById('flashCards');
-const listDiv = document.getElementById('listView');
-const searchInput = document.getElementById('search');
-const statsDiv = document.getElementById('stats');
-
-// モード切替
-document.getElementById('modeFlash').onclick = () => {
-  cardsDiv.style.display = 'block';
-  listDiv.style.display = 'none';
-  renderCards(searchInput.value);
-};
-document.getElementById('modeList').onclick = () => {
-  cardsDiv.style.display = 'none';
-  listDiv.style.display = 'block';
-  renderListView(searchInput.value);
-};
-
-// 音声読み上げ
-function speak(text, lang="th-TH") {
-  if('speechSynthesis' in window) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    window.speechSynthesis.speak(utter);
-  } else {
-    alert("このブラウザは音声読み上げに対応していません");
-  }
-}
-
-// フラッシュカード描画
-function renderCards(filter="") {
-  cardsDiv.innerHTML = "";
-  const filtered = words.filter(w => w.thai.includes(filter) || w.roman.includes(filter) || w.japanese.includes(filter) || w.category.includes(filter));
-  filtered.forEach(word => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <b>${word.japanese}</b> (${word.thai})<br>
-      <span class="hidden">発音: ${word.roman}<br>${word.description}</span>
-      <div>
-        <button class="speak">🔊 読み上げ</button>
-        <button class="correct">覚えた</button>
-        <button class="incorrect">まだ覚えてない</button>
-      </div>
-      <small>カテゴリ: ${word.category}</small>
-    `;
-
-    div.querySelector('span').onclick = (e) => e.stopPropagation();
-
-    div.querySelector('.speak').onclick = (e) => { 
-      e.stopPropagation(); 
-      speak(word.thai, "th-TH"); 
-    };
-
-    div.querySelector('.correct').onclick = (e) => { e.stopPropagation(); word.status=true; updateStats(); };
-    div.querySelector('.incorrect').onclick = (e) => { e.stopPropagation(); word.status=false; updateStats(); };
-    div.onclick = () => div.querySelector('span').classList.toggle('hidden');
-    cardsDiv.appendChild(div);
-  });
-  updateStats();
-}
-
-// 一覧表示描画
-function renderListView(filter="") {
-  listDiv.innerHTML = "<table><tr><th>タイ語</th><th>ローマ字</th><th>日本語</th><th>カテゴリ</th><th>🔊</th></tr>";
-  words.filter(w => w.thai.includes(filter) || w.roman.includes(filter) || w.japanese.includes(filter) || w.category.includes(filter))
-       .forEach(word => {
-         listDiv.innerHTML += `<tr>
-           <td>${word.thai}</td>
-           <td>${word.roman}</td>
-           <td>${word.japanese}</td>
-           <td>${word.category}</td>
-           <td><button onclick="speak('${word.thai}','th-TH')">🔊</button></td>
-         </tr>`;
-       });
-  listDiv.innerHTML += "</table>";
-}
-
-// 正解/不正解統計
-function updateStats() {
-  const cats = [...new Set(words.map(w=>w.category))];
-  let html="";
-  cats.forEach(cat=>{
-    const catWords = words.filter(w=>w.category===cat);
-    const correct = catWords.filter(w=>w.status===true).length;
-    const incorrect = catWords.filter(w=>w.status===false).length;
-    html += `<b>${cat}</b> 正解: ${correct} / 不正解: ${incorrect}<br>`;
-  });
-  statsDiv.innerHTML = html;
-}
-
-// 検索
-searchInput.addEventListener('input', ()=>{
-  if(cardsDiv.style.display === 'block') renderCards(searchInput.value);
-  else renderListView(searchInput.value);
-});
-
-// 初期表示
-renderCards();
-</script>
-
+    // 初期描画
+    renderTable();
+    renderCard();
+  </script>
 </body>
 </html>
