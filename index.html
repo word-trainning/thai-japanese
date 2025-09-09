@@ -66,7 +66,31 @@ th { background: #eee; }
 </div>
 
 <script>
-// データ（業務系会話編 50語 + 専門用語 50語）
+  // ===== ここが「先頭」 =====
+  function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+  }
+  // =========================
+
+  let business = [...]; // 業務系単語
+  let technical = [...]; // 専門用語
+
+  // カテゴリごとに配列を選択
+  let currentCategory = "business";
+  let cardsArray = currentCategory === "business" ? business : technical;
+
+  // シャッフル
+  cardsArray = shuffleArray(cardsArray);
+
+  let currentIndex = 0;
+
+  function renderCard() { ... }
+  function renderTable() { ... }
+  // データ（業務系会話編 50語 + 専門用語 50語）
 const data = {
   business: [
     { jp:"おはようございます", th:"สวัสดีครับ / ค่ะ", romaji:"sawatdii khráp / khâ", katakana:"サワッディー カップ／カー" },
