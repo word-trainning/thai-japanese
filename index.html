@@ -1,143 +1,151 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta xcharset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>タイ語-日本語 単語帳</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #fdfdfd; }
-    h1 { text-align: center; }
-    .tabs { text-align: center; margin-bottom: 20px; }
-    .tabs button { margin: 5px; padding: 10px 20px; cursor: pointer; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; }
-    .card { 
-      display: none; 
-      padding: 20px; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-      text-align: center; 
-      margin: 20px auto; 
-      width: 80%; 
-      background: #fff;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-    }
-    .card.active { display: block; }
-    .buttons { margin-top: 20px; text-align: center; }
-    .mode-select { text-align: center; margin: 10px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タイ語-日本語 単語帳</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background: #fdfdfd; }
+h1 { text-align: center; }
+.tabs { text-align: center; margin-bottom: 20px; }
+.tabs button { margin: 5px; padding: 10px 20px; cursor: pointer; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background: #eee; }
+.card { display: none; padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center; margin: 20px auto; width: 80%; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); }
+.card.active { display: block; }
+.buttons { margin-top: 20px; text-align: center; }
+.mode-select { text-align: center; margin: 10px; }
+.audio-btn { cursor: pointer; margin-left: 5px; }
+</style>
 </head>
 <body>
-  <h1>タイ語-日本語 単語帳</h1>
+<h1>タイ語-日本語 単語帳</h1>
 
-  <!-- タブメニュー -->
-  <div class="tabs">
-    <button onclick="showTab('list')">📋 一覧表</button>
-    <button onclick="showTab('flash')">🃏 単語暗記モード</button>
+<!-- タブ切替 -->
+<div class="tabs">
+  <button onclick="showTab('list')">📋 一覧表</button>
+  <button onclick="showTab('flash')">🃏 単語暗記モード</button>
+</div>
+
+<!-- 一覧表 -->
+<div id="list" class="tab-content active">
+  <h2>📋 一覧表</h2>
+  <div>
+    <button onclick="renderTable('business')">業務系会話編</button>
+    <button onclick="renderTable('technical')">専門用語</button>
   </div>
+  <table>
+    <thead>
+      <tr>
+        <th>タイ語</th>
+        <th>ローマ字</th>
+        <th>カタカナ</th>
+        <th>日本語</th>
+        <th>発音</th>
+      </tr>
+    </thead>
+    <tbody id="wordTable"></tbody>
+  </table>
+</div>
 
-  <!-- 一覧表タブ -->
-  <div id="list" class="tab-content active">
-    <h2>📋 一覧表</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>タイ語</th>
-          <th>ローマ字</th>
-          <th>カタカナ</th>
-          <th>日本語</th>
-        </tr>
-      </thead>
-      <tbody id="wordTable"></tbody>
-    </table>
+<!-- 単語暗記モード -->
+<div id="flash" class="tab-content">
+  <div class="mode-select">
+    <button onclick="setMode('business')">業務系会話編</button>
+    <button onclick="setMode('technical')">専門用語</button>
   </div>
-
-  <!-- 単語暗記タブ -->
-  <div id="flash" class="tab-content">
-    <div class="mode-select">
-      <button onclick="setMode('business')">業務連絡</button>
-      <button onclick="setMode('technical')">専門用語</button>
-    </div>
-    <div id="flashcard" class="card"></div>
-    <div class="buttons">
-      <button onclick="prevCard()">◀ 前へ</button>
-      <button onclick="nextCard()">次へ ▶</button>
-    </div>
+  <div id="flashcard" class="card"></div>
+  <div class="buttons">
+    <button onclick="prevCard()">◀ 前へ</button>
+    <button onclick="nextCard()">次へ ▶</button>
+    <button onclick="playAudio()">▶️ 発音</button>
   </div>
+</div>
 
-  <script>
-    // ✅ 専門用語
-    const technicalWords = [
-      { thai: "การผลิต", romaji: "kan phalit", katakana: "カーン パリット", japanese: "生産" },
-      { thai: "คุณภาพ", romaji: "khunnaphap", katakana: "クンナパープ", japanese: "品質" },
-      { thai: "เครื่องจักร", romaji: "khrueang chak", katakana: "クルアン チャック", japanese: "機械" },
-      { thai: "มาตรฐาน", romaji: "matrathan", katakana: "マートラターン", japanese: "基準／標準" },
-      { thai: "ความปลอดภัย", romaji: "khwam plotphai", katakana: "クワーム プロットパイ", japanese: "安全" },
-    ];
+<script>
+// データ
+const data = {
+  business: [
+    { jp: "おはようございます", th: "สวัสดีครับ / ค่ะ", romaji: "sawatdii khráp / khâ", katakana: "サワッディー カップ／カー" },
+    { jp: "本日中に報告書を提出してください", th: "กรุณาส่งรายงานภายในวันนี้", romaji: "karuna song raingan phainai wan ni", katakana: "カルナー ソン ラーイガーン パイナイ ワンニー" },
+    { jp: "午後2時に会議があります", th: "เรามีการประชุมตอนบ่ายสองโมง", romaji: "rao mi kan prachum ton bai song mong", katakana: "ラオ ミー ガーン プラチューム トン バーイ ソーン モーン" },
+    { jp: "納品前に品質を確認してください", th: "ตรวจสอบคุณภาพก่อนส่งมอบ", romaji: "truat sop khunnaphap kon song mop", katakana: "トゥルアット ソープ クンナパープ ゴーン ソンモープ" },
+    { jp: "この仕事は明日までに完了させてください", th: "งานนี้ต้องเสร็จภายในพรุ่งนี้", romaji: "ngan ni tong set phainai phrung ni", katakana: "ガーン ニー トン セット パイナイ プルンニー" },
+  ],
+  technical: [
+    { jp: "生産", th: "การผลิต", romaji: "kan phalit", katakana: "カーン パリット" },
+    { jp: "品質", th: "คุณภาพ", romaji: "khunnaphap", katakana: "クンナパープ" },
+    { jp: "機械", th: "เครื่องจักร", romaji: "khrueang chak", katakana: "クルアン チャック" },
+    { jp: "天然ゴム", th: "ยางธรรมชาติ", romaji: "yaang thammachaat", katakana: "ヤーン タマチャート" },
+    { jp: "加硫工程", th: "กระบวนการวัลคาไนซ์", romaji: "krabuan gaan vulkanize", katakana: "クラブアン ガーン ヴァルカナイズ" },
+    { jp: "安全", th: "ความปลอดภัย", romaji: "khwam plotphai", katakana: "クワーム プロットパイ" },
+    { jp: "原材料", th: "วัสดุ", romaji: "watsadu", katakana: "ワッサドゥ" },
+  ]
+};
 
-    // ✅ 実践的な業務連絡フレーズ
-    const businessPhrases = [
-      { thai: "กรุณาส่งรายงานภายในวันนี้", romaji: "karuna song raingan phainai wan ni", katakana: "カルナー ソン ラーイガーン パイナイ ワンニー", japanese: "本日中に報告書を提出してください" },
-      { thai: "เรามีการประชุมตอนบ่ายสองโมง", romaji: "rao mi kan prachum ton bai song mong", katakana: "ラオ ミー ガーン プラチューム トン バーイ ソーン モーン", japanese: "午後2時に会議があります" },
-      { thai: "ตรวจสอบคุณภาพก่อนส่งมอบ", romaji: "truat sop khunnaphap kon song mop", katakana: "トゥルアット ソープ クンナパープ ゴーン ソンモープ", japanese: "納品前に品質を確認してください" },
-      { thai: "งานนี้ต้องเสร็จภายในพรุ่งนี้", romaji: "ngan ni tong set phainai phrung ni", katakana: "ガーン ニー トン セット パイナイ プルンニー", japanese: "この仕事は明日までに完了させてください" },
-      { thai: "ขอรายงานยอดการผลิตประจำวัน", romaji: "kho raingan yot kan phalit pracham wan", katakana: "コー ラーイガーン ヨート ガーン パリット プラチャム ワン", japanese: "日次生産レポートをください" },
-    ];
+let currentMode = 'technical';
+let currentIndex = 0;
 
-    let current = 0;
-    let mode = "technical"; // デフォルトは専門用語
+// タブ表示切替
+function showTab(tab) {
+  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+}
 
-    function renderTable() {
-      const table = document.getElementById("wordTable");
-      table.innerHTML = "";
-      [...technicalWords, ...businessPhrases].forEach(w => {
-        const row = `<tr>
-          <td>${w.thai}</td>
-          <td>${w.romaji}</td>
-          <td>${w.katakana}</td>
-          <td>${w.japanese}</td>
-        </tr>`;
-        table.innerHTML += row;
-      });
-    }
+// 一覧表表示
+function renderTable(mode) {
+  const table = document.getElementById("wordTable");
+  table.innerHTML = "";
+  data[mode].forEach(item=>{
+    table.innerHTML += `<tr>
+      <td>${item.th}</td>
+      <td>${item.romaji}</td>
+      <td>${item.katakana}</td>
+      <td>${item.jp}</td>
+      <td><button onclick="speak('${item.th}')">▶️</button></td>
+    </tr>`;
+  });
+}
 
-    function renderCard() {
-      const card = document.getElementById("flashcard");
-      const data = (mode === "technical") ? technicalWords : businessPhrases;
-      const w = data[current];
-      card.innerHTML = `<h3>${w.thai}</h3><p>${w.romaji}</p><p>${w.katakana}</p><p>${w.japanese}</p>`;
-      card.classList.add("active");
-    }
+// 単語暗記モード
+function renderCard() {
+  const card = document.getElementById("flashcard");
+  const word = data[currentMode][currentIndex];
+  card.innerHTML = `<h3>${word.th}</h3><p>${word.romaji}</p><p>${word.katakana}</p><p>${word.jp}</p>`;
+  card.classList.add("active");
+}
 
-    function nextCard() {
-      const data = (mode === "technical") ? technicalWords : businessPhrases;
-      current = (current + 1) % data.length;
-      renderCard();
-    }
+function nextCard() {
+  currentIndex = (currentIndex + 1) % data[currentMode].length;
+  renderCard();
+}
+function prevCard() {
+  currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length;
+  renderCard();
+}
+function setMode(mode) {
+  currentMode = mode;
+  currentIndex = 0;
+  renderCard();
+}
 
-    function prevCard() {
-      const data = (mode === "technical") ? technicalWords : businessPhrases;
-      current = (current - 1 + data.length) % data.length;
-      renderCard();
-    }
+// 音声再生
+function playAudio() {
+  const text = data[currentMode][currentIndex].th;
+  speak(text);
+}
+function speak(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "th-TH";
+  speechSynthesis.speak(u);
+}
 
-    function setMode(newMode) {
-      mode = newMode;
-      current = 0;
-      renderCard();
-    }
-
-    function showTab(tab) {
-      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-      document.getElementById(tab).classList.add("active");
-    }
-
-    // 初期描画
-    renderTable();
-    renderCard();
-  </script>
+// 初期表示
+renderTable('technical');
+renderCard();
+</script>
 </body>
 </html>
