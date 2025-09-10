@@ -393,7 +393,27 @@ function setMode(mode) {
   currentIndex = 0;
   renderCard();
 }
+// ランダムカード表示
+function randomCard() {
+  currentIndex = Math.floor(Math.random() * data[currentMode].length);
+  renderCard();
+}
 
+function nextCard() {
+  currentIndex = (currentIndex + 1) % data[currentMode].length;
+  renderCard();
+}
+
+function prevCard() {
+  currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length;
+  renderCard();
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  currentIndex = 0;
+  renderCard();
+}
 // 音声再生
 function playAudio() {
   const text = data[currentMode][currentIndex].th;
