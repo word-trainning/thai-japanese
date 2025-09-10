@@ -19,6 +19,21 @@ th { background: #eee; }
 .buttons { margin-top: 20px; text-align: center; }
 .mode-select { text-align: center; margin: 10px; }
 .audio-btn { cursor: pointer; margin-left: 5px; }
+.test-option {
+  display: block;
+  width: 90%;
+  margin: 10px auto;
+  padding: 15px;
+  font-size: 1.2em;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #f9f9f9;
+  cursor: pointer;
+  text-align: center;
+}
+.test-option:hover {
+  background: #e0f0ff;
+}
 </style>
 </head>
 <body>
@@ -427,7 +442,10 @@ function showQuestion() {
 
   document.getElementById("testArea").innerHTML = `
     <div><b>Q${testIndex+1}/${totalQuestions}</b> : 「${question.jp}」 のタイ語はどれ？</div>
-    ${options.map((o,i)=>`<button onclick="checkAnswer('${o.th}','${question.th}')">${i+1}. ${o.th}</button>`).join("<br>")}
+    ${options.map((o,i)=>`
+      <button class="test-option" onclick="checkAnswer('${o.th}','${question.th}')">
+        ${i+1}. ${o.katakana}
+      </button>`).join("")}
   `;
 }
 
