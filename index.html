@@ -29,6 +29,7 @@ th { background: #eee; }
 <div class="tabs">
   <button onclick="showTab('list')">📋 一覧表</button>
   <button onclick="showTab('flash')">🃏 単語暗記モード</button>
+  <button onclick="showTab('test')">テストモード</button>
 </div>
 
 <!-- 一覧表 -->
@@ -66,7 +67,16 @@ th { background: #eee; }
     <button onclick="playAudio()">▶️ 発音</button>
   </div>
 </div>
-
+  
+<div id="test" class="hidden">
+  <h2>テストモード</h2>
+  <div>
+    <button onclick="startTest('business')">業務会話テスト</button>
+    <button onclick="startTest('technical')">専門用語テスト</button>
+  </div>
+  <div id="testArea" style="margin-top:20px;"></div>
+</div>
+  
 <script>
 // データ（業務系会話編 50語 + 専門用語 50語）
 const data = {
@@ -414,6 +424,92 @@ function setMode(mode) {
   currentIndex = 0;
   renderCard();
 }
+テストモード
+let testData = [];
+let testIndex = 0;
+let correctCount = 0;
+let wrongAnswers = [];
+let totalQuestions = 0;
+let testMode = "business";
+
+function startTest(mode) {
+  testMode = mode;
+  const data = mode === 'business' ? business : technical;
+  if (data.length < 4) { alert("単語が少なすぎます"); return; }
+
+  const level = parseInt(prompt("レベルを選んでください (1〜10)", "5"));
+  if (isNaN(level) || level < 1 || level > 10) { alert("1〜10の数字を入力してください"); return; }
+
+  // 出題数をレベルごとに割り振る
+  const perLevel = Math.ceil(data.length / 10);
+  totalQuestions = Math.min(data.length, perLevel * level);
+
+  // 重複なしで問題を抽出
+  testData = [...data].sort(() => Math.random() - 0.5).slice(0, totalQuestions);
+
+  testIndex = 0;
+  correctCount = 0;
+  wrongAnswers = [];
+  showQuestion();
+}
+
+function showQuestion() {
+  if (testIndex >= testData.length) {
+    showResult();
+    return;
+  }
+
+  const question = testData[testIndex];
+  const data = testMode === 'business' ? business : technical;
+
+  // 4択を作る
+  let options = [question];
+  while (options.length < 4) {
+    let candidate = data[Math.floor(Math.random() * data.length)];
+    if (!options.some(o => o.th === candidate.th)) {
+      options.push(candidate);
+    }
+  }
+  options.sort(() => Math.random() - 0.5);
+
+  document.getElementById("testArea").innerHTML = `
+    <div><b>Q${testIndex+1}/${totalQuestions}</b> : 「${question.jp}」 のタイ語はどれ？</div>
+    ${options.map((o,i)=>`<button onclick="checkAnswer('${o.th}','${question.th}')">${i+1}. ${o.th}</button>`).join("<br>")}
+  `;
+}
+
+function checkAnswer(answer, correct) {
+  if (answer === correct) {
+    correctCount++;
+    alert("✅ 正解！");
+  } else {
+    alert("❌ 不正解\\n正解は: " + correct);
+    wrongAnswers.push(testData[testIndex]);
+  }
+  testIndex++;
+  showQuestion();
+}
+
+function showResult() {
+  let pass = correctCount >= Math.floor(totalQuestions * 0.8);
+  let msg = `終了！ 正解数: ${correctCount}/${totalQuestions}`;
+  msg += pass ? "\\n🎉 合格！" : "\\n😢 不合格";
+
+  document.getElementById("testArea").innerHTML = `
+    <div>${msg}</div>
+    ${wrongAnswers.length > 0 ? `<button onclick="reviewWrong()">間違えた問題を復習</button>` : ""}
+  `;
+}
+
+function reviewWrong() {
+  testData = [...wrongAnswers];
+  testIndex = 0;
+  correctCount = 0;
+  wrongAnswers = [];
+  totalQuestions = testData.length;
+  showQuestion();
+}
+
 // 音声再生
 function playAudio() {
   const text = data[currentMode][currentIndex].th;
