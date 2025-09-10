@@ -16,6 +16,7 @@ th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
 th { background: #eee; }
 .card { display: none; padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center; margin: 20px auto; width: 80%; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); }
 .card.active { display: block; }
+.japanese { display: none; color: blue; } /* 日本語訳を初期非表示 */
 .buttons { margin-top: 20px; text-align: center; }
 .mode-select { text-align: center; margin: 10px; }
 .audio-btn { cursor: pointer; margin-left: 5px; }
@@ -60,6 +61,7 @@ th { background: #eee; }
   <div id="flashcard" class="card"></div>
   <div class="buttons">
     <button onclick="prevCard()">◀ 前へ</button>
+    <button onclick="showAnswer()">答え</button>
     <button onclick="nextCard()">次へ ▶</button>
     <button onclick="playAudio()">▶️ 発音</button>
   </div>
@@ -338,9 +340,10 @@ const data = {
 let currentMode = 'technical';
 let currentIndex = 0;
 
+
 // タブ表示切替
 function showTab(tab) {
-  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 }
 
@@ -348,7 +351,7 @@ function showTab(tab) {
 function renderTable(mode) {
   const table = document.getElementById("wordTable");
   table.innerHTML = "";
-  data[mode].forEach(item=>{
+  data[mode].forEach(item => {
     table.innerHTML += `<tr>
       <td>${item.th}</td>
       <td>${item.romaji}</td>
@@ -363,18 +366,28 @@ function renderTable(mode) {
 function renderCard() {
   const card = document.getElementById("flashcard");
   const word = data[currentMode][currentIndex];
-  card.innerHTML = `<h3>${word.th}</h3><p>${word.romaji}</p><p>${word.katakana}</p><p>${word.jp}</p>`;
+  card.innerHTML = `<h3>${word.th}</h3><p>${word.romaji}</p><p>${word.katakana}</p><p class="japanese">${word.jp}</p>`;
   card.classList.add("active");
+  // 日本語訳を非表示にリセット
+  document.querySelector('.japanese').style.display = 'none';
+}
+
+// 日本語訳を表示
+function showAnswer() {
+  const japaneseText = document.querySelector('.japanese');
+  japaneseText.style.display = 'block';
 }
 
 function nextCard() {
   currentIndex = (currentIndex + 1) % data[currentMode].length;
   renderCard();
 }
+
 function prevCard() {
   currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length;
   renderCard();
 }
+
 function setMode(mode) {
   currentMode = mode;
   currentIndex = 0;
@@ -386,6 +399,7 @@ function playAudio() {
   const text = data[currentMode][currentIndex].th;
   speak(text);
 }
+
 function speak(text) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "th-TH";
