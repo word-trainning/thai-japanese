@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タイ語-日本語 単語帳 勉強用</title>
+<title>タイ語-日本語 単語帳 完全版</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background: #fdfdfd; }
 h1 { text-align: center; }
@@ -16,7 +16,6 @@ th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
 th { background: #eee; }
 .card { display: none; padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center; margin: 20px auto; width: 80%; background: #fff; box-shadow: 2px 2px 8px rgba(0,0,0,0.1); }
 .card.active { display: block; }
-.japanese { display: none; color: blue; } /* 日本語訳を初期非表示 */
 .buttons { margin-top: 20px; text-align: center; }
 .mode-select { text-align: center; margin: 10px; }
 .audio-btn { cursor: pointer; margin-left: 5px; }
@@ -29,7 +28,7 @@ th { background: #eee; }
 <div class="tabs">
   <button onclick="showTab('list')">📋 一覧表</button>
   <button onclick="showTab('flash')">🃏 単語暗記モード</button>
-  <button onclick="showTab('test')">テストモード</button>
+  <button onclick="showTab('test')">📝 テストモード</button>
 </div>
 
 <!-- 一覧表 -->
@@ -62,23 +61,23 @@ th { background: #eee; }
   <div id="flashcard" class="card"></div>
   <div class="buttons">
     <button onclick="prevCard()">◀ 前へ</button>
-    <button onclick="showAnswer()">答え</button>
     <button onclick="nextCard()">次へ ▶</button>
     <button onclick="playAudio()">▶️ 発音</button>
   </div>
 </div>
-  
-<div id="test" class="hidden">
-  <h2>テストモード</h2>
-  <div>
-    <button onclick="startTest('business')">業務会話テスト</button>
+
+<!-- テストモード -->
+<div id="test" class="tab-content">
+  <h2>📝 テストモード</h2>
+  <div class="mode-select">
+    <button onclick="startTest('business')">業務系会話編テスト</button>
     <button onclick="startTest('technical')">専門用語テスト</button>
   </div>
-  <div id="testArea" style="margin-top:20px;"></div>
+  <div id="testArea"></div>
 </div>
-  
+
 <script>
-// データ（業務系会話編 50語 + 専門用語 50語）
+// ===== データ部分 =====
 const data = {
   business: [
     { jp:"おはようございます", th:"สวัสดีครับ / ค่ะ", romaji:"sawatdii khráp / khâ", katakana:"サワッディー カップ／カー" },
@@ -350,18 +349,17 @@ const data = {
 let currentMode = 'technical';
 let currentIndex = 0;
 
-
-// タブ表示切替
+// ===== 共通処理 =====
 function showTab(tab) {
-  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
   document.getElementById(tab).classList.add("active");
 }
 
-// 一覧表表示
+// ===== 一覧表 =====
 function renderTable(mode) {
   const table = document.getElementById("wordTable");
   table.innerHTML = "";
-  data[mode].forEach(item => {
+  data[mode].forEach(item=>{
     table.innerHTML += `<tr>
       <td>${item.th}</td>
       <td>${item.romaji}</td>
@@ -372,59 +370,22 @@ function renderTable(mode) {
   });
 }
 
-// 単語暗記モード
+// ===== 暗記モード =====
 function renderCard() {
   const card = document.getElementById("flashcard");
   const word = data[currentMode][currentIndex];
-  card.innerHTML = `<h3>${word.th}</h3><p>${word.romaji}</p><p>${word.katakana}</p><p class="japanese">${word.jp}</p>`;
+  card.innerHTML = `<h3>${word.th}</h3><p>${word.romaji}</p><p>${word.katakana}</p><p>${word.jp}</p>`;
   card.classList.add("active");
-  // 日本語訳を非表示にリセット
-  document.querySelector('.japanese').style.display = 'none';
 }
+function nextCard() { currentIndex = (currentIndex + 1) % data[currentMode].length; renderCard(); }
+function prevCard() { currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length; renderCard(); }
+function setMode(mode) { currentMode = mode; currentIndex = 0; renderCard(); }
 
-// 日本語訳を表示
-function showAnswer() {
-  const japaneseText = document.querySelector('.japanese');
-  japaneseText.style.display = 'block';
-}
+// 音声
+function playAudio() { const text = data[currentMode][currentIndex].th; speak(text); }
+function speak(text) { const u = new SpeechSynthesisUtterance(text); u.lang = "th-TH"; speechSynthesis.speak(u); }
 
-function nextCard() {
-  currentIndex = (currentIndex + 1) % data[currentMode].length;
-  renderCard();
-}
-
-function prevCard() {
-  currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length;
-  renderCard();
-}
-
-function setMode(mode) {
-  currentMode = mode;
-  currentIndex = 0;
-  renderCard();
-}
-// ランダムカード表示
-function randomCard() {
-  currentIndex = Math.floor(Math.random() * data[currentMode].length);
-  renderCard();
-}
-
-function nextCard() {
-  currentIndex = (currentIndex + 1) % data[currentMode].length;
-  renderCard();
-}
-
-function prevCard() {
-  currentIndex = (currentIndex - 1 + data[currentMode].length) % data[currentMode].length;
-  renderCard();
-}
-
-function setMode(mode) {
-  currentMode = mode;
-  currentIndex = 0;
-  renderCard();
-}
-テストモード
+// ===== テストモード =====
 let testData = [];
 let testIndex = 0;
 let correctCount = 0;
@@ -434,18 +395,16 @@ let testMode = "business";
 
 function startTest(mode) {
   testMode = mode;
-  const data = mode === 'business' ? business : technical;
-  if (data.length < 4) { alert("単語が少なすぎます"); return; }
+  const dataset = data[mode];
+  if (dataset.length < 4) { alert("単語が少なすぎます"); return; }
 
   const level = parseInt(prompt("レベルを選んでください (1〜10)", "5"));
   if (isNaN(level) || level < 1 || level > 10) { alert("1〜10の数字を入力してください"); return; }
 
-  // 出題数をレベルごとに割り振る
-  const perLevel = Math.ceil(data.length / 10);
-  totalQuestions = Math.min(data.length, perLevel * level);
+  const perLevel = Math.ceil(dataset.length / 10);
+  totalQuestions = Math.min(dataset.length, perLevel * level);
 
-  // 重複なしで問題を抽出
-  testData = [...data].sort(() => Math.random() - 0.5).slice(0, totalQuestions);
+  testData = [...dataset].sort(() => Math.random() - 0.5).slice(0, totalQuestions);
 
   testIndex = 0;
   correctCount = 0;
@@ -454,21 +413,15 @@ function startTest(mode) {
 }
 
 function showQuestion() {
-  if (testIndex >= testData.length) {
-    showResult();
-    return;
-  }
+  if (testIndex >= testData.length) { showResult(); return; }
 
   const question = testData[testIndex];
-  const data = testMode === 'business' ? business : technical;
+  const dataset = data[testMode];
 
-  // 4択を作る
   let options = [question];
   while (options.length < 4) {
-    let candidate = data[Math.floor(Math.random() * data.length)];
-    if (!options.some(o => o.th === candidate.th)) {
-      options.push(candidate);
-    }
+    let candidate = dataset[Math.floor(Math.random() * dataset.length)];
+    if (!options.some(o => o.th === candidate.th)) options.push(candidate);
   }
   options.sort(() => Math.random() - 0.5);
 
@@ -483,7 +436,7 @@ function checkAnswer(answer, correct) {
     correctCount++;
     alert("✅ 正解！");
   } else {
-    alert("❌ 不正解\\n正解は: " + correct);
+    alert("❌ 不正解\n正解は: " + correct);
     wrongAnswers.push(testData[testIndex]);
   }
   testIndex++;
@@ -493,7 +446,7 @@ function checkAnswer(answer, correct) {
 function showResult() {
   let pass = correctCount >= Math.floor(totalQuestions * 0.8);
   let msg = `終了！ 正解数: ${correctCount}/${totalQuestions}`;
-  msg += pass ? "\\n🎉 合格！" : "\\n😢 不合格";
+  msg += pass ? "\n🎉 合格！" : "\n😢 不合格";
 
   document.getElementById("testArea").innerHTML = `
     <div>${msg}</div>
@@ -510,19 +463,7 @@ function reviewWrong() {
   showQuestion();
 }
 
-// 音声再生
-function playAudio() {
-  const text = data[currentMode][currentIndex].th;
-  speak(text);
-}
-
-function speak(text) {
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "th-TH";
-  speechSynthesis.speak(u);
-}
-
-// 初期表示
+// ===== 初期表示 =====
 renderTable('technical');
 renderCard();
 </script>
